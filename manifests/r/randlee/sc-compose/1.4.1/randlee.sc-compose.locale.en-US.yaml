@@ -1,0 +1,135 @@
+# Created with WinGet Releaser using komac v2.16.0
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.12.0.schema.json
+
+PackageIdentifier: randlee.sc-compose
+PackageVersion: 1.4.1
+PackageLocale: en-US
+Publisher: Rand Lee
+PublisherUrl: https://github.com/randlee
+PublisherSupportUrl: https://github.com/randlee/sc-compose/issues
+Author: Rand Lee
+PackageName: sc-compose
+PackageUrl: https://github.com/randlee/sc-compose
+License: MIT
+LicenseUrl: https://github.com/randlee/sc-compose/blob/HEAD/LICENSE
+ShortDescription: Standalone CLI for template composition
+Description: |-
+  sc-compose is a standalone command-line tool for Jinja2-based template
+  composition. It wraps the sc-composer library to provide file and profile
+  rendering modes, frontmatter-driven configuration, and observability hooks
+  — with no external runtime dependencies.
+Moniker: sc-compose
+Tags:
+- cli
+- jinja2
+- rust
+- template
+- template-engine
+ReleaseNotes: |-
+  Release Notes
+  Added
+  - Added the public sc-composer::inspect_template_directives API, which
+    validates UTF-8 template bytes and returns classified include, import, and
+    from-import statement spans without exposing MiniJinja parser internals or
+    resolving filesystem targets.
+  - Added fail-closed include-chain validation for JSON escape modes across
+    validate, validate --lint, and render. An included template that
+    explicitly declares a mode different from the root's effective mode now
+    receives the stable ERR_JSON_MODE_INCLUDE_CONFLICT diagnostic with the
+    participating template paths and modes; matching or undeclared includes
+    continue to inherit the root mode.
+  - Added one shared Jinja variable-expression scanner in sc-composer for
+    template lint and validation. It returns named
+    JinjaVariableExpressionSpan offsets, keeping comment, raw-block, and
+    expression boundary handling consistent across both callers.
+  - Added Python diagnostic-code bindings for
+    ERR_JSON_MODE_INCLUDE_CONFLICT and WARN_LINT_REDUNDANT_FILTER_CHAIN so
+    the native and Python surfaces expose the same stable codes.
+  Changed
+  - Made RenderCheckMeta and CheckedOutput metadata private after validation,
+    with read-only accessors so callers cannot mutate the recorded render
+    contract or provenance after a body has been checked. This closes a public
+    API mutation path and is a breaking-surface change for callers that
+    constructed or modified these fields directly.
+  - Clarified ADR-0019's scope: checked output is enforced at the sc-compose
+    CLI emitter, while direct sc-composer library consumers must follow the
+    named Checked-Emission Caller Contract and run check_rendered_output on
+    ComposeResult::rendered_text before emission or caching. A bundled
+    compose_checked() helper is deferred to a future Checked Library
+    Composition API sprint.
+  - Migrated the six in-repository JSON assignment templates to explicit
+    json_escape_mode: auto, with semantic hostile-value fixtures and a
+    documented legacy compatibility fixture. See
+    docs/migration/json-escape-mode.md for the source-shape matrix. This is
+    repository-local migration evidence; cross-repository release readiness
+    remains a Phase O.5 responsibility.
+  - Added the Phase O.5 pinned release-corpus inventory and parser-backed fuzz
+    gate. The campaign records actual consumer-root counts, rejects malformed
+    JSON before emission, preserves the auto/legacy compatibility probe, and
+    reports external migration owners without editing their repositories. The
+    1.4.1 release ships under the documented waiver in
+    docs/phase-O/evidence/o5-release-corpus.md, with legacy-mode fallback and
+    diagnostics (WARN_JSON_LEGACY_ESCAPE_MODE,
+    ERR_JSON_MODE_INCLUDE_CONFLICT) covering downstream consumers until they
+    migrate. The 28 external templates across six downstream roots (atm-core,
+    cpo, raptor, sc-lint, synaptic-canvas, and roslyn-lint) remain migration
+    work for their owners.
+  - Closed the Phase O CI lint-gate gap: the CI-authoritative lint profile now
+    enforces the production template-contracts target through
+    just lint-ci-consumer with an explicit structured pass assertion, excludes
+    intentional negative and non-production test fixtures, and keeps validation
+    and repository lint aligned when scanning Jinja comments and raw blocks.
+  Fixed
+  - Preserved the underlying serde_yaml parse error as the source cause for
+    malformed YAML frontmatter, so callers can inspect the original parser
+    failure through the ConfigError chain instead of receiving only the
+    normalized configuration diagnostic.
+  Upgrade And Cutover Notes
+  - Release and cutover order
+  - JSON escape-mode migration guide
+  What's Changed
+  - chore: back-propagate main merge history to develop (post-1.4.0 release) by @randlee in #415
+  - fix(release): pass release-tag to winget-releaser by @randlee in #416
+  - docs: plan JSON escape-mode compatibility fix (PLAN-JSON-FORMAT-ESCAPE-MODE) by @randlee in #420
+  - docs: link README to project website by @randlee in #419
+  - docs: propose ADR-0019 JSON render contract by @randlee in #421
+  - docs: record design/ADR-0019 acceptance for Phase O dispatch gate by @randlee in #422
+  - Sprint O.1: JSON escape mode contract and safe renderer compatibility by @randlee in #423
+  - fix(ci): isolate parallel test fixture paths (O.1 follow-up) by @randlee in #424
+  - feat(o2): checked render contract, fail-closed JSON emission by @randlee in #425
+  - feat(o3): template lint diagnostics, template-contracts repo target by @randlee in #426
+  - fix(template-lint): remove redundant path round-trip in visit_template_dir by @randlee in #427
+  - Sprint O.4: Six-template migration and compatibility fixtures by @randlee in #428
+  - fix(fixtures): mark reverse-extract JSON fixtures as legacy escape mode by @randlee in #429
+  - Sprint O.5: cross-repository release corpus and fuzz gate by @randlee in #430
+  - docs(o5): correct sc-lint bootstrap blocker description by @randlee in #431
+  - docs(adr-0019): scope checked-emission enforcement to CLI, name library caller contract by @randlee in #433
+  - fix(o6): gate production template-contracts in CI, close scanner-parity nit by @randlee in #434
+  - docs(o5): correct release-corpus report terminology (PASS* -> CONDITIONAL, accurate parser scope) by @randlee in #432
+  - feat: reject conflicting include JSON modes by @randlee in #435
+  - fix(o6): extract shared Jinja scanner, close scanner-duplication and plan-entry findings by @randlee in #436
+  - docs(o8): add fix-434 sprint doc, close project-plan format nit by @randlee in #437
+  - fix(o9): close QA-PHASE-O-ENDING-RECHECK findings by @randlee in #440
+  - docs(o12): changelog entries for Phase O fixes by @randlee in #441
+  - chore(release): bump workspace and PyPI packages to 1.4.1 by @randlee in #438
+  - docs: audit phase history after phase O (O14) by @randlee in #443
+  - docs: audit public documentation for 1.4.1 (O14) by @randlee in #444
+  - feat(sc-composer): expose directive inspection API (FIX-O15) by @randlee in #446
+  - test(sc-composer): cover checked-emission caller contract (#448) by @randlee in #449
+  - docs(o16): reorder recommended fix to version-upgrade-then-migrate by @randlee in #447
+  - integrate/phase-o -> develop (Phase O) by @randlee in #439
+  - fix(sc-composer): harden checked-render format detection and byte offsets by @randlee in #453
+  - fix: preserve UTF-8 JSON diagnostic byte offsets (FIX-POSTMERGE-01) by @randlee in #455
+  - fix: respect CLI JSON mode in legacy warnings (FIX-POSTMERGE-04) by @randlee in #456
+  - fix: unify template format detection (FIX-POSTMERGE-02) by @randlee in #458
+  - fix(sc-composer): make checked-render metadata caller-authoritative and immutable by @randlee in #452
+  - fix: preserve the actual failing render pass (FIX-POSTMERGE-03) by @randlee in #459
+  - fix: attribute template defaults in checked render reports (FIX-POSTMERGE-05) by @randlee in #457
+  - Release: sync develop into main (1.4.1 line) by @randlee in #454
+  - docs(changelog): file checked-render privatization under 1.4.1 by @randlee in #460
+  - sync: bring changelog fix (#460) from main into develop by @randlee in #461
+  - sync: bring develop's #461 merge commit onto main (release-gate ancestry fix) by @randlee in #463
+  Full Changelog: v1.4.0...v1.4.1
+ReleaseNotesUrl: https://github.com/randlee/sc-compose/releases/tag/v1.4.1
+ManifestType: defaultLocale
+ManifestVersion: 1.12.0
